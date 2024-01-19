@@ -52,7 +52,6 @@ public class ClientServiceImpl implements ClientService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-
     @Override
     public List<Client> getAllClients() {
         return clientRepository.findAll();
@@ -91,15 +90,12 @@ public class ClientServiceImpl implements ClientService {
                         .build(),
                 headers);
         ResponseEntity<String> response = template.postForEntity(
-                //configService.getConfigs().get("centrale-url") + baseAPi
-                "http://localhost:8001/api/v1/client/auth"
-                , httpEntity
-                , String.class
-        );
+                // configService.getConfigs().get("centrale-url") + baseAPi
+                "http://localhost:8001/api/v1/client/auth", httpEntity, String.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             String responseBody = response.getBody().toString();
-            //log.info(responseBody);
+            // log.info(responseBody);
             Map<String, Object> data = mapper.readValue(responseBody, Map.class);
             Client client = Client.builder()
                     .email(_email)
@@ -107,17 +103,17 @@ public class ClientServiceImpl implements ClientService {
                     .build();
             Particulier particulier = new Particulier();
 
-                    particulier.setAdresse((String) data.get("adress"));
+            particulier.setAdresse((String) data.get("adress"));
             particulier.setCivilite((String) data.get("civilite"));
             particulier.setNationalite((String) data.get("nationalite"));
             particulier.setNom((String) data.get("nom"));
             particulier.setPrenom((String) data.get("prenom"));
-            particulier.setCodePostal((String)data.get("codePostal"));
+            particulier.setCodePostal((String) data.get("codePostal"));
             particulier.setTelephone((String) data.get("telephone"));
             particulier.setVille((String) data.get("ville"));
             particulier.setPassword(passwordEncoder.encode(_password));
 
-            //particulier.setCommune(communeRepository.findByCodePostal((String)data.get("codePostal")));
+            // particulier.setCommune(communeRepository.findByCodePostal((String)data.get("codePostal")));
 
             particulierRepository.save(particulier);
             clientRepository.save(client);
@@ -131,12 +127,10 @@ public class ClientServiceImpl implements ClientService {
         clientRepository.deleteById(id);
     }
 
-
     @Override
     public String login(String email, String password) {
         Client client = clientRepository.findByEmail(email);
         if (client != null && passwordEncoder.matches(password, client.getPassword())) {
-
 
             return generateToken(client);
         } else {
@@ -213,39 +207,43 @@ public class ClientServiceImpl implements ClientService {
 
     @Autowired
     private ParticulierRepository particulierRepository;
-   /* @Override
-    public Particulier subscribeParticulier(Particulier particulier) {
-        // Add any business logic or validation here before saving
-        return particulierRepository.save(particulier);
-    }
-*/
+    /*
+     * @Override
+     * public Particulier subscribeParticulier(Particulier particulier) {
+     * // Add any business logic or validation here before saving
+     * return particulierRepository.save(particulier);
+     * }
+     */
 
-
-    /*@Override
-    public Particulier subscribeParticulier(Particulier particulier) {
-
-        String generatedPassword = generateRandomPassword();
-        System.out.println("generated passeword: " + generatedPassword);
-        String hashedPassword = passwordEncoder.encode(generatedPassword);
-        particulier.setPassword(hashedPassword );
-        Particulier subscribedParticulier = particulierRepository.save(particulier);
-        emailService.sendConfirmationEmail(subscribedParticulier.getEmail());
-
-        // Retrieve Commune based on postal code
-        String postalCode = particulier.getCodePostal(); // Assuming you have a method to get postal code from Particulier
-        Commune commune = communeRepository.findByCodePostal(postalCode);
-
-        if (commune != null) {
-            subscribedParticulier.setCommune(commune); // Associate Particulier with Commune
-            return particulierRepository.save(subscribedParticulier); // Save and return the updated Particulier
-        } else {
-            // Handle scenario when Commune is not found for the provided postal code
-            return null;
-        }
-
-        return subscribedParticulier;
-    }*/
-
+    /*
+     * @Override
+     * public Particulier subscribeParticulier(Particulier particulier) {
+     * 
+     * String generatedPassword = generateRandomPassword();
+     * System.out.println("generated passeword: " + generatedPassword);
+     * String hashedPassword = passwordEncoder.encode(generatedPassword);
+     * particulier.setPassword(hashedPassword );
+     * Particulier subscribedParticulier = particulierRepository.save(particulier);
+     * emailService.sendConfirmationEmail(subscribedParticulier.getEmail());
+     * 
+     * // Retrieve Commune based on postal code
+     * String postalCode = particulier.getCodePostal(); // Assuming you have a
+     * method to get postal code from Particulier
+     * Commune commune = communeRepository.findByCodePostal(postalCode);
+     * 
+     * if (commune != null) {
+     * subscribedParticulier.setCommune(commune); // Associate Particulier with
+     * Commune
+     * return particulierRepository.save(subscribedParticulier); // Save and return
+     * the updated Particulier
+     * } else {
+     * // Handle scenario when Commune is not found for the provided postal code
+     * return null;
+     * }
+     * 
+     * return subscribedParticulier;
+     * }
+     */
 
     @Override
     public Particulier subscribeParticulier(Particulier particulier) {
@@ -264,11 +262,22 @@ public class ClientServiceImpl implements ClientService {
 
             // Save the Particulier first
             Particulier subscribedParticulier = particulierRepository.save(particulier);
-
-            // Simulate email confirmation (replace with your actual email sending logic)
+            emailService.sendConfirmationEmail(subscribedParticulier.getEmail(), generatedPassword);
             System.out.println("Sending confirmation email to: " + subscribedParticulier.getEmail());
 
-            return subscribedParticulier;
+            String postalCode = particulier.getCodePostal(); // Assuming you have a method to get postal code from
+                                                             // Particulier
+            Commune commune = communeRepository.findByCodePostal(postalCode);
+            System.out.println("postalCode postalCode: " + postalCode);
+
+            if (commune != null) {
+                subscribedParticulier.setCommune(commune); // Associate Particulier with Commune
+                particulierRepository.save(subscribedParticulier);
+                return subscribedParticulier; // Save and return the updated Particulier
+            } else {
+                // Handle scenario when Commune is not found for the provided postal code
+                return null;
+            }
         } catch (RuntimeException e) {
             throw e; // Re-throw the exception to be handled globally or customize the response here
         } catch (Exception e) {
@@ -277,14 +286,12 @@ public class ClientServiceImpl implements ClientService {
         }
     }
 
-
     /////////////// generate password ////////////////////////////
 
     @Override
     public String generateRandomPassword() {
 
         String uuid = UUID.randomUUID().toString().replace("-", "");
-
 
         return uuid.substring(0, 8);
     }
@@ -308,7 +315,6 @@ public class ClientServiceImpl implements ClientService {
         }
     }
 
-
     @Override
     public void activateClientByEmail(String email) {
         Client client = clientRepository.findByEmail(email);
@@ -320,12 +326,10 @@ public class ClientServiceImpl implements ClientService {
         clientRepository.save(client);
     }
 
-
-
     @Override
     public String sendConfirmationEmail(String recipientEmail) {
         // Retrieve existing Client entity from the database
-    System.out.print(recipientEmail+"recipientEmail");
+        System.out.print(recipientEmail + "recipientEmail");
         Client existingClient = clientRepository.findByEmail(recipientEmail);
 
         if (existingClient == null) {
