@@ -28,7 +28,7 @@ public class EmailService {
         System.out.println("encrypted email " + encryptedEmail);
         // String activationUrl =
         // "http://localhost:8000/clients/activate/"+encryptedEmail;
-        String activationUrl = "http://localhost:8000/clients/activate?email="
+        String activationUrl = "https://observant-shock-production.up.railway.app/clients/activate?email="
                 + encryptedEmail;
         try {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -113,7 +113,7 @@ public class EmailService {
     public void sendanotherConfirmation(String recipientEmail) {
 
         MimeMessage mimeMessage = emailSender.createMimeMessage();
-        String activationUrl = "http://localhost:8000/clients/activate?email="
+        String activationUrl = "https://observant-shock-production.up.railway.app/clients/activate?email="
                 + recipientEmail;
 
         try {
