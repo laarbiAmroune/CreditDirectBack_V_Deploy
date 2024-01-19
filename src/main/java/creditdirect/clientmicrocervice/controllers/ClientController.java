@@ -25,10 +25,9 @@ public class ClientController {
     private final ClientService clientService;
     private final EmailService emailService;
 
-
     private final EncryptionService encryptionService;
 
-    /////////////////get all client////////////////////////////
+    ///////////////// get all client////////////////////////////
     @GetMapping
     public ResponseEntity<List<Client>> getAllClients() {
         List<Client> clients = clientService.getAllClients();
@@ -38,25 +37,25 @@ public class ClientController {
     @GetMapping("/{id}")
     public ResponseEntity<Client> getClientById(@PathVariable("id") Long id) {
         Client client = clientService.getClientById(id);
-        return client != null ? new ResponseEntity<>(client, HttpStatus.OK) :
-                new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return client != null ? new ResponseEntity<>(client, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Client> updateClient(@PathVariable("id") Long id, @RequestBody Client client) {
         Client updatedClient = clientService.updateClient(id, client);
-        return updatedClient != null ? new ResponseEntity<>(updatedClient, HttpStatus.OK) :
-                new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return updatedClient != null ? new ResponseEntity<>(updatedClient, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    /////////////////////////delete client///////////////////////
+    ///////////////////////// delete client///////////////////////
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable("id") Long id) {
         clientService.deleteClient(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    ////////////////////////client login/////////////////////////
+    //////////////////////// client login/////////////////////////
     @PostMapping("/login")
     public ResponseEntity<?> loginWithClientInfo(@RequestBody Map<String, String> credentials) {
         String email = credentials.get("email");
@@ -83,7 +82,7 @@ public class ClientController {
         }
     }
 
-    ////////////encien loginnn
+    //////////// encien loginnn
     @PostMapping("/login/encienne")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String email = credentials.get("email");
@@ -105,8 +104,7 @@ public class ClientController {
         }
     }
 
-
-    //////////////////inscription particulier///////////////////////////
+    ////////////////// inscription particulier///////////////////////////
     @PostMapping("/subscribe/particulier")
     public ResponseEntity<Object> subscribeParticulier(@RequestBody Particulier particulier) {
         try {
@@ -125,9 +123,11 @@ public class ClientController {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    ///////////////////updaate client password/////////////////////////
+
+    /////////////////// updaate client password/////////////////////////
     @PutMapping("/addpassword")
-    public ResponseEntity<String> updateClientPassword(@RequestParam Long id, @RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<String> updateClientPassword(@RequestParam Long id,
+            @RequestBody Map<String, String> requestBody) {
         String password = requestBody.get("password");
 
         if (id == null || password == null) {
@@ -145,38 +145,42 @@ public class ClientController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client with ID " + id + " not found");
         }
     }
-   /* @GetMapping("/activate")
-    public ResponseEntity<String> activateClientByEmail(@RequestParam("email") String email) {
-        clientService.activateClientByEmail(email);
+    /*
+     * @GetMapping("/activate")
+     * public ResponseEntity<String> activateClientByEmail(@RequestParam("email")
+     * String email) {
+     * clientService.activateClientByEmail(email);
+     * 
+     * String htmlResponse = "<html>"
+     * + "<head><title>Activation Successful</title></head>"
+     * + "<body>"
+     * + "<h1>Client Activation</h1>"
+     * + "<p>Client with email " + email + " has been activated.</p>"
+     * + "</body>"
+     * + "</html>";
+     * 
+     * return ResponseEntity.status(HttpStatus.OK).body(htmlResponse);
+     * }
+     */
 
-        String htmlResponse = "<html>"
-                + "<head><title>Activation Successful</title></head>"
-                + "<body>"
-                + "<h1>Client Activation</h1>"
-                + "<p>Client with email " + email + " has been activated.</p>"
-                + "</body>"
-                + "</html>";
-
-        return ResponseEntity.status(HttpStatus.OK).body(htmlResponse);
-    }*/
-
-
-    /////////////////////////activer compte client via email////////////////////////////
+    ///////////////////////// activer compte client via
+    ///////////////////////// email////////////////////////////
     @GetMapping("/activate")
     public ResponseEntity<String> activateClientByEmail(@RequestParam("email") String email) {
         try {
-            //clientService.activateClientByEmail(email);
+            // clientService.activateClientByEmail(email);
 
-
+            System.out.print("decrypteemailanvat proces" + email);
             String decrypteemail = encryptionService.decrypt(email);
-            System.out.print("decrypteemail"+decrypteemail);
+            System.out.print("decrypteemail" + decrypteemail);
 
             clientService.activateClientByEmail(decrypteemail);
 
             String htmlResponse = "<!DOCTYPE html>\n" +
                     "<html>\n" +
                     "<head>\n" +
-                    "  <link href=\"https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap\" rel=\"stylesheet\">\n" +
+                    "  <link href=\"https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap\" rel=\"stylesheet\">\n"
+                    +
                     "</head>\n" +
                     "<style>\n" +
                     "  body {\n" +
@@ -219,7 +223,8 @@ public class ClientController {
                     "\n" +
                     "<body>\n" +
                     "  <div class=\"card\">\n" +
-                    "    <div style=\"border-radius:200px; height:200px; width:200px; background: #F8FAF5; margin:0 auto;\">\n" +
+                    "    <div style=\"border-radius:200px; height:200px; width:200px; background: #F8FAF5; margin:0 auto;\">\n"
+                    +
                     "      <i class=\"checkmark\">✓</i>\n" +
                     "    </div>\n" +
                     "    <h1>Success</h1>\n" +
@@ -234,7 +239,8 @@ public class ClientController {
             String errorHtmlResponse = "<!DOCTYPE html>\n" +
                     "<html>\n" +
                     "<head>\n" +
-                    "  <link href=\"https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap\" rel=\"stylesheet\">\n" +
+                    "  <link href=\"https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap\" rel=\"stylesheet\">\n"
+                    +
                     "</head>\n" +
                     "<style>\n" +
                     "  body {\n" +
@@ -281,7 +287,7 @@ public class ClientController {
         }
     }
 
-///////////////envoyer un email de confirmation///////////////////////
+    /////////////// envoyer un email de confirmation///////////////////////
 
     @PostMapping("/send-confirmation-email")
     public String sendConfirmationEmail(@RequestBody Map<String, String> requestBody) {
