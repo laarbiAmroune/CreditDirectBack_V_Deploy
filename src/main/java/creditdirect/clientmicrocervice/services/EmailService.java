@@ -10,34 +10,30 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.UUID;
 
-
-
-
 @Service
 public class EmailService {
     private final EncryptionService encryptionService;
     private final JavaMailSender emailSender;
 
-    public EmailService(JavaMailSender emailSender ,EncryptionService encryptionService) {
-        this.emailSender = emailSender;  this.encryptionService = encryptionService;
+    public EmailService(JavaMailSender emailSender, EncryptionService encryptionService) {
+        this.emailSender = emailSender;
+        this.encryptionService = encryptionService;
     }
 
     public void sendConfirmationEmail(String recipientEmail, String password) {
 
-
         MimeMessage mimeMessage = emailSender.createMimeMessage();
-
 
         String encryptedEmail = encryptionService.encrypt(recipientEmail);
         System.out.print(encryptedEmail);
-       // String activationUrl = "http://localhost:8000/clients/activate/"+encryptedEmail;
-        String activationUrl = "https://thin-laugh-production.up.railway.app/clients/activate?email=" + encryptedEmail;
+        // String activationUrl =
+        // "http://localhost:8000/clients/activate/"+encryptedEmail;
+        String activationUrl = "https://observant-shock-production.up.railway.app/clients/activate?email="
+                + encryptedEmail;
         try {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setTo(recipientEmail);
             helper.setSubject("Subscription Confirmation");
-
-
 
             String htmlBody = "<html>"
                     + "<head>"
@@ -48,7 +44,7 @@ public class EmailService {
                     + ".buttontext { color: #fff; }"
                     + "h2 { color: #0056b3; }"
                     + "p { color: #333; }"
-                    +  " h1 { color: #742484; }"
+                    + " h1 { color: #742484; }"
                     + ".btn  .btn { \n" +
                     "            display: inline-block; \n" +
                     "            padding: 10px 20px; \n" +
@@ -62,21 +58,16 @@ public class EmailService {
                     "            box-shadow: 0px -12px 16px 8px rgba(0, 0, 0, 0.25) inset; \n" +
                     "            cursor: pointer; \n" +
                     "        }"
-                    + ".btn:hover { background-color: #004080; }"  // Optional: Add hover effect
+                    + ".btn:hover { background-color: #004080; }" // Optional: Add hover effect
                     + "</style>"
                     + "</head>"
                     + "<body>"
                     + "<h2>Merci de votre inscription !</h2>"
-                    +"  <h1>Bienvenu chez CreditDirect</h1> "
+                    + "  <h1>Bienvenu chez CreditDirect</h1> "
                     + "<p class:'buttontext'>Votre mot de passe est : <strong>" + password + "</strong></p>"
 
                     + "<h3>clicker ici pour <a href='" + activationUrl + "' class='btn'>activer votre  compte</a></h3>"
                     + "</body></html>";
-
-
-
-
-
 
             helper.setText(htmlBody, true); // Set the email body as HTML
         } catch (MessagingException e) {
@@ -86,12 +77,6 @@ public class EmailService {
         // Send the email
         emailSender.send(mimeMessage);
     }
-
-
-
-
-
-
 
     public void sendPasswordEmail(String recipientEmail, String password) {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
@@ -125,17 +110,11 @@ public class EmailService {
         emailSender.send(mimeMessage);
     }
 
-
-
-
-
-
-
     public void sendanotherConfirmation(String recipientEmail) {
 
-
         MimeMessage mimeMessage = emailSender.createMimeMessage();
-        String activationUrl = "http://localhost:8000/clients/activate?email=" + recipientEmail;
+        String activationUrl = "https://observant-shock-production.up.railway.app/clients/activate?email="
+                + recipientEmail;
 
         try {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -158,8 +137,6 @@ public class EmailService {
                     + "<p><a href='" + activationUrl + "' class='btn'>activate your compte</a></p>"
                     + "</body></html>";
 
-
-
             helper.setText(htmlBody, true); // Set the email body as HTML
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -171,35 +148,32 @@ public class EmailService {
 
 }
 
-
-
-
-
 /*
-@Service
-public class EmailService {
-
-    private final JavaMailSender emailSender;
-
-    public EmailService(JavaMailSender emailSender) {
-        this.emailSender = emailSender;
-    }
-
-    public void sendConfirmationEmail(String recipientEmail) {
-        MimeMessage mimeMessage = emailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
-
-        try {
-            helper.setTo(recipientEmail);
-            helper.setSubject("Subscription Confirmation");
-            helper.setText("Thank you for subscribing! Your password is: ");
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-
-        // Send the email
-        emailSender.send(mimeMessage);
-    }
-
-
-}*/
+ * @Service
+ * public class EmailService {
+ * 
+ * private final JavaMailSender emailSender;
+ * 
+ * public EmailService(JavaMailSender emailSender) {
+ * this.emailSender = emailSender;
+ * }
+ * 
+ * public void sendConfirmationEmail(String recipientEmail) {
+ * MimeMessage mimeMessage = emailSender.createMimeMessage();
+ * MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+ * 
+ * try {
+ * helper.setTo(recipientEmail);
+ * helper.setSubject("Subscription Confirmation");
+ * helper.setText("Thank you for subscribing! Your password is: ");
+ * } catch (MessagingException e) {
+ * e.printStackTrace();
+ * }
+ * 
+ * // Send the email
+ * emailSender.send(mimeMessage);
+ * }
+ * 
+ * 
+ * }
+ */
