@@ -5,6 +5,7 @@ import creditdirect.clientmicrocervice.entities.Particulier;
 import creditdirect.clientmicrocervice.services.ClientService;
 import creditdirect.clientmicrocervice.services.EmailService;
 import creditdirect.clientmicrocervice.services.EncryptionService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -293,6 +294,33 @@ public class ClientController {
     public String sendConfirmationEmail(@RequestBody Map<String, String> requestBody) {
         String recipientEmail = requestBody.get("recipientEmail");
         return clientService.sendConfirmationEmail(recipientEmail);
+    }
+
+
+
+    @PutMapping("/{id}/reset-password")
+    public ResponseEntity<String> updatePassword(@PathVariable Long id, @RequestBody Map<String, String> requestBody) {
+        String oldPassword = requestBody.get("oldPassword").toString();
+        String newPassword = requestBody.get("newPassword").toString();
+
+        if (id == null || oldPassword == null || newPassword == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request format");
+        }
+
+        System.out.println("Received request to update password for Client ID: " + id + newPassword + oldPassword);
+
+        ResponseEntity<String> updateResponse = clientService.updatePassword(id, newPassword, oldPassword);
+
+        return updateResponse;
+    }
+    @PutMapping("/reset-password")
+    public ResponseEntity<String> resetPasswordByEmail(@RequestBody String email) {
+        try {
+            clientService.resetPasswordByEmail(email);
+            return ResponseEntity.ok("Un e-mail de réinitialisation de mot de passe a été envoyé à l'adresse : " + email);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
 }

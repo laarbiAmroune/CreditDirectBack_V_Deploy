@@ -3,6 +3,7 @@ package creditdirect.clientmicrocervice.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import creditdirect.clientmicrocervice.entities.Client;
 import creditdirect.clientmicrocervice.entities.Particulier;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -32,4 +33,8 @@ public interface ClientService {
 
 
     String sendConfirmationEmail(String recipientEmail);
+
+    ResponseEntity<String> updatePassword(Long id, String newPassword, String oldPassword);
+
+    void resetPasswordByEmail(String email);
 }

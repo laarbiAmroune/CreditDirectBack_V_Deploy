@@ -22,10 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -182,7 +179,7 @@ public class ClientServiceImpl implements ClientService {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
 
                     .subject(client.getEmail())
-                    .claim("clientType", clientType.toString())
+                    .claim("role", clientType.toString())
                     .claim("id", client.getId().toString()) // Include ID in the claim
                     .issueTime(new Date())
                     .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -354,6 +351,51 @@ public class ClientServiceImpl implements ClientService {
         emailService.sendConfirmationEmail(subscribedClient.getEmail(), generatedPassword);
 
         return "Confirmation email sent to " + recipientEmail;
+    }
+
+    @Override
+    public ResponseEntity<String> updatePassword(Long clientId, String newPassword, String oldPassword) {
+        Optional<Client> optionalClient = clientRepository.findById(clientId);
+
+        if (optionalClient.isPresent()) {
+            Client client = optionalClient.get();
+            String hashedNewPassword = passwordEncoder.encode(newPassword);
+
+            if (passwordEncoder.matches(oldPassword, client.getPassword())){
+
+                client.setPassword(hashedNewPassword);
+                clientRepository.save(client);
+                return ResponseEntity.ok("Mot de passe mis à jour avec succès");
+
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ancien mot de passe incorrect");
+            }
+        } else {
+            // Handle case where client with provided ID doesn't exist
+            // You can throw an exception or return an appropriate ResponseEntity
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client introuvable avec l'ID fourni");
+        }
+    }
+
+
+    @Override
+    public void resetPasswordByEmail(String email) {
+        Client client = clientRepository.findByEmail(email);
+
+        if (client != null) {
+            // Générer un nouveau mot de passe
+            String newPassword = generateRandomPassword();
+            String hashedNewPassword = passwordEncoder.encode(newPassword);
+            client.setPassword(hashedNewPassword);
+
+            // Sauvegarder le client avec le nouveau mot de passe
+            clientRepository.save(client);
+
+            // Envoyer un e-mail avec le nouveau mot de passe
+            emailService.sendPasswordResetEmail(client.getEmail(), newPassword, client.getEmail());
+        } else {
+            throw new EntityNotFoundException("Client non trouvé avec l'e-mail : " + email);
+        }
     }
 
 }
