@@ -228,11 +228,12 @@ public class ClientController {
                     +
                     "      <i class=\"checkmark\">✓</i>\n" +
                     "    </div>\n" +
-                    "    <h1>Success</h1>\n" +
-                    "    <p>Votre compte a ete activer avec succes!</p>\n" +
+                    "    <h1>Succès</h1>\n" +
+                    "    <p>Votre compte a été activé avec succès !</p>\n" +
                     "  </div>\n" +
                     "</body>\n" +
                     "</html>";
+
 
             return ResponseEntity.status(HttpStatus.OK).body(htmlResponse);
         } catch (Exception e) {
@@ -277,12 +278,13 @@ public class ClientController {
                     "\n" +
                     "<body>\n" +
                     "  <div class=\"card\">\n" +
-                    "    <h1>Error</h1>\n" +
-                    "    <p>Activation for the account  has failed.</p>\n" +
-                    "    <p>Error: " + e.getMessage() + "</p>\n" +
+                    "    <h1>Erreur</h1>\n" +
+                    "    <p>Le serveur a rencontré un problème. Veuillez réessayer plus tard.</p>\n" +
+
                     "  </div>\n" +
                     "</body>\n" +
                     "</html>";
+
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorHtmlResponse);
         }
@@ -300,19 +302,20 @@ public class ClientController {
 
     @PutMapping("/{id}/reset-password")
     public ResponseEntity<String> updatePassword(@PathVariable Long id, @RequestBody Map<String, String> requestBody) {
-        String oldPassword = requestBody.get("oldPassword").toString();
-        String newPassword = requestBody.get("newPassword").toString();
+        String oldPassword = requestBody.get("oldPassword");
+        String newPassword = requestBody.get("newPassword");
 
         if (id == null || oldPassword == null || newPassword == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request format");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Format de requête invalide");
         }
 
-        System.out.println("Received request to update password for Client ID: " + id + newPassword + oldPassword);
+        System.out.println("Requête reçue pour mettre à jour le mot de passe du client ID : " + id + newPassword + oldPassword);
 
         ResponseEntity<String> updateResponse = clientService.updatePassword(id, newPassword, oldPassword);
 
         return updateResponse;
     }
+
     @PutMapping("/reset-password")
     public ResponseEntity<String> resetPasswordByEmail(@RequestBody String email) {
         try {

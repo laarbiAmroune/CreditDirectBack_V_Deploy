@@ -212,6 +212,7 @@ public class DossierController {
             @PathVariable("compteId") Long idCompte) {
 
         try {
+            System.out.println("add comment mehtode begin");
             dossierService.addCommentToDossier(idDossier, comment, idCompte);
             return ResponseEntity.ok("Comment added successfully");
         } catch (DossierServiceImpl.DossierNotFoundException e) {

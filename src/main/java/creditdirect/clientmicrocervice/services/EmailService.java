@@ -156,11 +156,11 @@ public class EmailService {
             helper.setTo(recipientEmail);
             helper.setSubject("Password Reset");
 
-            String resetUrl = "http://localhost:8000/clients/reset-password?email=" + recipientEmail;
 
-            String htmlBody = "<html>"
+
+            String htmlBody  = "<html>"
                     + "<head>"
-                    + "<title>Password Reset</title>"
+                    + "<title>Réinitialisation du mot de passe</title>"
                     + "<style>"
                     + "body { font-family: Arial, sans-serif; }"
                     + "h2 { color: #0056b3; }"
@@ -169,9 +169,8 @@ public class EmailService {
                     + "</style>"
                     + "</head>"
                     + "<body>"
-                    + "<h2>Password Reset</h2>"
-                    + "<p>Your new password is: <strong>" + newPassword + "</strong></p>"
-                    + "<p><a href='" + resetUrl + "' class='btn'>Reset your password</a></p>"
+                    + "<h2>Réinitialisation du mot de passe</h2>"
+                    + "<p>Votre nouveau mot de passe est : <strong>" + newPassword + "</strong></p>"
                     + "</body></html>";
 
             helper.setText(htmlBody, true); // Set the email body as HTML
