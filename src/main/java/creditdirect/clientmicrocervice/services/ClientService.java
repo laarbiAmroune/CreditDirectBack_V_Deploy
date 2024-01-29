@@ -37,4 +37,7 @@ public interface ClientService {
     ResponseEntity<String> updatePassword(Long id, String newPassword, String oldPassword);
 
     void resetPasswordByEmail(String email);
+
+
+    Particulier updateParticulierinfo(Long id, Particulier updatedParticulier);
 }

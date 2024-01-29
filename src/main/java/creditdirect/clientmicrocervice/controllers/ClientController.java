@@ -326,4 +326,11 @@ public class ClientController {
         }
     }
 
+
+    @PutMapping("/updateparticulier/{id}")
+    public ResponseEntity<Particulier> updateParticulierinfo(@PathVariable Long id, @RequestBody Particulier updatedParticulier) {
+        Particulier updatedEntity =clientService.updateParticulierinfo(id, updatedParticulier);
+        return new ResponseEntity<>(updatedEntity, HttpStatus.OK);
+    }
+
 }
