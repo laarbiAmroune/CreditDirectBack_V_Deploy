@@ -1,5 +1,5 @@
 package creditdirect.clientmicrocervice.services;
-
+import java.lang.reflect.Field;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
@@ -16,11 +16,13 @@ import creditdirect.clientmicrocervice.repositories.ClientRepository;
 import creditdirect.clientmicrocervice.repositories.CommuneRepository;
 import creditdirect.clientmicrocervice.repositories.ParticulierRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,7 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-
+import java.beans.PropertyDescriptor;
 @RequiredArgsConstructor
 @Service
 public class ClientServiceImpl implements ClientService {
@@ -142,6 +144,7 @@ public class ClientServiceImpl implements ClientService {
             Map<String, Object> response = new HashMap<>();
 
             if (client != null && passwordEncoder.matches(password, client.getPassword())) {
+
                 if (client.isActivated()) {
                     String token = generateToken(client);
                     String clientType = getClientType(client);
@@ -184,6 +187,7 @@ public class ClientServiceImpl implements ClientService {
                     .issueTime(new Date())
                     .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                     .build();
+
 
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
                     .type(JOSEObjectType.JWT)
@@ -397,5 +401,34 @@ public class ClientServiceImpl implements ClientService {
             throw new EntityNotFoundException("Client non trouvé avec l'e-mail : " + email);
         }
     }
+@Override
+@Transactional
+public Particulier updateParticulierinfo(Long id, Particulier updatedParticulier) {
+    Particulier existingParticulier = particulierRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Particulier not found with id: " + id));
 
+    // Update only non-null fields from the updatedParticulier
+    updateNonNullFields(existingParticulier, updatedParticulier);
+
+    // Save the updated entity
+    return particulierRepository.save(existingParticulier);
+}
+
+    private void updateNonNullFields(Object target, Object source) {
+        Class<?> targetClass = target.getClass();
+        Field[] fields = targetClass.getDeclaredFields();
+
+        for (Field field : fields) {
+            try {
+                field.setAccessible(true);
+                Object sourceValue = field.get(source);
+                if (sourceValue != null) {
+                    field.set(target, sourceValue);
+                }
+            } catch (IllegalAccessException e) {
+                // Handle the exception based on your application's requirements
+                throw new RuntimeException("Error updating field: " + field.getName(), e);
+            }
+        }
+    }
 }

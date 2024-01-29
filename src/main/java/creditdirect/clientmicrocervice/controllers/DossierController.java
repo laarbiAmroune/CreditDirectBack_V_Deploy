@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,32 +23,32 @@ import java.nio.file.Paths;
 import java.util.List;
 
 
-
 @RestController
 @RequestMapping("/dossiers")
 public class DossierController {
-
 
     private final DossierService dossierService;
 
     @Autowired
     public DossierController(DossierService dossierService) {
         this.dossierService = dossierService;
-
     }
-    ///////////////get all dossiers////////////////////
-    @GetMapping("/all")
 
+    // Get all dossiers
+
+    @GetMapping("/all")
     public ResponseEntity<List<Dossier>> getAllDossiers() {
         List<Dossier> dossiers = dossierService.getAllDossiers();
         return new ResponseEntity<>(dossiers, HttpStatus.OK);
     }
-    ////////////////get dosssier by id dossiers /////////////////////////
-    @GetMapping("/{id}")
-    public Dossier getDossierById(@PathVariable Long id) {
-        return dossierService.getDossierById(id);
-    }
 
+    // Get dossier by id (restricted to users with 'courtier' authority)
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Dossier> getDossierById(@PathVariable Long id) {
+        Dossier dossier = dossierService.getDossierById(id);
+        return new ResponseEntity<>(dossier, HttpStatus.OK);
+    }
 
     //////////////////get dossiiers by id client/////////////////
 
@@ -197,10 +198,12 @@ public class DossierController {
 
 
     /////////////////////
+    @PreAuthorize("hasRole('courtier')")
     @GetMapping("/courtier/{courtierId}/alldossiers")
     public List<Dossier> getAcceptedAndRejectedDossiersByCourtier(
             @PathVariable Long courtierId
     ) {
+
         return dossierService.getAcceptedAndRejectedDossiersByCourtier(courtierId);
     }
 
