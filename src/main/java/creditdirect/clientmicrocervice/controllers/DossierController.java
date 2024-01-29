@@ -35,7 +35,7 @@ public class DossierController {
     }
 
     // Get all dossiers
-    @PreAuthorize("hasRole('admin')")
+
     @GetMapping("/all")
     public ResponseEntity<List<Dossier>> getAllDossiers() {
         List<Dossier> dossiers = dossierService.getAllDossiers();
