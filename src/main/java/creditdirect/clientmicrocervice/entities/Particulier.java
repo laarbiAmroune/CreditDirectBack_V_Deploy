@@ -37,6 +37,8 @@ public class Particulier extends Client {
 
     @Column(name = "ville")
     private String ville;
+    @Column(name = "wilaya")
+    private String wilaya;
 
     @Column(name = "code_postal")
     private String codePostal;
