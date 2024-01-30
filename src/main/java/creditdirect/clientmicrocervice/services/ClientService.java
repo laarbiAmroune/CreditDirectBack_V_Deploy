@@ -40,4 +40,7 @@ public interface ClientService {
 
 
     Particulier updateParticulierinfo(Long id, Particulier updatedParticulier);
+
+    ///////////////////////////other option
+    Particulier updateParticulierInformation(Long clientId, Particulier updatedParticulier);
 }

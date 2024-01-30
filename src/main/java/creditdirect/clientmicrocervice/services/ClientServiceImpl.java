@@ -22,7 +22,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,7 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-import java.beans.PropertyDescriptor;
+
 @RequiredArgsConstructor
 @Service
 public class ClientServiceImpl implements ClientService {
@@ -430,5 +429,34 @@ public Particulier updateParticulierinfo(Long id, Particulier updatedParticulier
                 throw new RuntimeException("Error updating field: " + field.getName(), e);
             }
         }
+    }
+
+
+    ///////////////////////////other option
+    @Override
+    public Particulier updateParticulierInformation(Long clientId, Particulier updatedParticulier) {
+        // Retrieve the Particulier entity using the client ID
+        Particulier existingParticulier = particulierRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+        // Check if the retrieved entity is indeed a Particulier
+        if (!(existingParticulier instanceof Particulier)) {
+            throw new RuntimeException("Client with id " + clientId + " is not a Particulier");
+        }
+
+        // Cast it to Particulier
+        Particulier particulier = (Particulier) existingParticulier;
+
+        // Update only specific fields
+        particulier.setNom(updatedParticulier.getNom());
+        particulier.setPrenom(updatedParticulier.getPrenom());
+        particulier.setEmail(updatedParticulier.getEmail());
+        particulier.setTelephone(updatedParticulier.getTelephone());
+        particulier.setAdresse(updatedParticulier.getAdresse());
+        particulier.setWilaya(updatedParticulier.getWilaya());
+        particulier.setCommune(updatedParticulier.getCommune());
+
+        // Save and return the updated particulier
+        return particulierRepository.save(particulier);
     }
 }
