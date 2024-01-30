@@ -400,18 +400,29 @@ public class ClientServiceImpl implements ClientService {
             throw new EntityNotFoundException("Client non trouvé avec l'e-mail : " + email);
         }
     }
-@Override
-@Transactional
-public Particulier updateParticulierinfo(Long id, Particulier updatedParticulier) {
-    Particulier existingParticulier = particulierRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Particulier not found with id: " + id));
+    @Override
+    @Transactional
+    public Particulier updateParticulierinfo(Long id, Particulier updatedParticulier) {
+        Particulier existingParticulier = particulierRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Particulier not found with id: " + id));
 
-    // Update only non-null fields from the updatedParticulier
-    updateNonNullFields(existingParticulier, updatedParticulier);
+        Client existingClient = clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + id));
 
-    // Save the updated entity
-    return particulierRepository.save(existingParticulier);
-}
+        // Update only non-null fields from the updatedParticulier
+        updateNonNullFields(existingParticulier, updatedParticulier);
+
+        // Update email field using clientRepository
+        if (updatedParticulier.getEmail() != null) {
+            existingClient.setEmail(updatedParticulier.getEmail());
+            clientRepository.save(existingClient);
+        }
+
+        // Save the updated entities
+        particulierRepository.save(existingParticulier);
+
+        return existingParticulier;
+    }
 
     private void updateNonNullFields(Object target, Object source) {
         Class<?> targetClass = target.getClass();
@@ -437,6 +448,9 @@ public Particulier updateParticulierinfo(Long id, Particulier updatedParticulier
     public Particulier updateParticulierInformation(Long clientId, Particulier updatedParticulier) {
         // Retrieve the Particulier entity using the client ID
         Particulier existingParticulier = particulierRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Particulier not found with id: " + clientId));
+
+        Client existingClient = clientRepository.findById(clientId)
                 .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
 
         // Check if the retrieved entity is indeed a Particulier
@@ -447,16 +461,22 @@ public Particulier updateParticulierinfo(Long id, Particulier updatedParticulier
         // Cast it to Particulier
         Particulier particulier = (Particulier) existingParticulier;
 
+        Client client = (Client) existingClient;
+
         // Update only specific fields
         particulier.setNom(updatedParticulier.getNom());
         particulier.setPrenom(updatedParticulier.getPrenom());
-        particulier.setEmail(updatedParticulier.getEmail());
+        client.setEmail(updatedParticulier.getEmail());
         particulier.setTelephone(updatedParticulier.getTelephone());
         particulier.setAdresse(updatedParticulier.getAdresse());
         particulier.setWilaya(updatedParticulier.getWilaya());
         particulier.setCommune(updatedParticulier.getCommune());
 
         // Save and return the updated particulier
-        return particulierRepository.save(particulier);
+        particulierRepository.save(particulier);
+        clientRepository.save(client);
+
+        return particulier;
     }
+
 }
