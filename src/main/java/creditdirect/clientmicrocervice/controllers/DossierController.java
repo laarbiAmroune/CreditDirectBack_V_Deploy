@@ -37,6 +37,8 @@ public class DossierController {
 
     // Get all dossiers
 
+
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/all")
     public ResponseEntity<List<Dossier>> getAllDossiers() {
         List<Dossier> dossiers = dossierService.getAllDossiers();
@@ -215,7 +217,7 @@ public class DossierController {
 
 
     /////////////////////
-    @PreAuthorize("hasRole('courtier')")
+
     @GetMapping("/courtier/{courtierId}/alldossiers")
     public List<Dossier> getAcceptedAndRejectedDossiersByCourtier(
             @PathVariable Long courtierId
