@@ -19,12 +19,11 @@ public interface ClientService {
 
 
 
-    String login(String email, String password);
 
 
     Map<String, Object> loginWithClientInfo(String email, String password);
 
-    Particulier subscribeParticulier(Particulier particulier);
+    Map<String, Object> subscribeParticulier(Particulier particulier);
 
     String generateRandomPassword();
 

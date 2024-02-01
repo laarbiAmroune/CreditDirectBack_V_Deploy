@@ -9,9 +9,11 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import creditdirect.clientmicrocervice.config.JwtUtil;
 import creditdirect.clientmicrocervice.entities.Client;
 import creditdirect.clientmicrocervice.entities.Commune;
 import creditdirect.clientmicrocervice.entities.Particulier;
+import creditdirect.clientmicrocervice.entities.RoleType;
 import creditdirect.clientmicrocervice.repositories.ClientRepository;
 import creditdirect.clientmicrocervice.repositories.CommuneRepository;
 import creditdirect.clientmicrocervice.repositories.ParticulierRepository;
@@ -49,6 +51,10 @@ public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
+
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public List<Client> getAllClients() {
@@ -125,16 +131,6 @@ public class ClientServiceImpl implements ClientService {
         clientRepository.deleteById(id);
     }
 
-    @Override
-    public String login(String email, String password) {
-        Client client = clientRepository.findByEmail(email);
-        if (client != null && passwordEncoder.matches(password, client.getPassword())) {
-
-            return generateToken(client);
-        } else {
-            return "Authentication failed";
-        }
-    }
 
     @Override
     public Map<String, Object> loginWithClientInfo(String email, String password) {
@@ -145,7 +141,7 @@ public class ClientServiceImpl implements ClientService {
             if (client != null && passwordEncoder.matches(password, client.getPassword())) {
 
                 if (client.isActivated()) {
-                    String token = generateToken(client);
+                    String token = jwtUtil.generateToken(client.getId(), RoleType.client);
                     String clientType = getClientType(client);
 
                     response.put("client", client); // Adding client information to the response
@@ -173,80 +169,12 @@ public class ClientServiceImpl implements ClientService {
         }
     }
 
-    private String generateToken(Client client) {
-        try {
 
-            String clientType = getClientType(client);
-            System.out.println("Logged in as " + clientType);
-            JWTClaimsSet claims = new JWTClaimsSet.Builder()
-
-                    .subject(client.getEmail())
-                    .claim("role", clientType.toString())
-                    .claim("id", client.getId().toString()) // Include ID in the claim
-                    .issueTime(new Date())
-                    .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                    .build();
-
-
-            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
-                    .type(JOSEObjectType.JWT)
-                    .build();
-
-            SignedJWT signedJWT = new SignedJWT(header, claims);
-
-            MACSigner signer = new MACSigner(SECRET_KEY);
-            signedJWT.sign(signer);
-
-            return signedJWT.serialize();
-        } catch (JOSEException e) {
-            logger.error("Error generating JWT token for email: {}", client, e);
-            // Add additional handling here if necessary
-            return null;
-        }
-    }
 
     @Autowired
     private ParticulierRepository particulierRepository;
-    /*
-     * @Override
-     * public Particulier subscribeParticulier(Particulier particulier) {
-     * // Add any business logic or validation here before saving
-     * return particulierRepository.save(particulier);
-     * }
-     */
-
-    /*
-     * @Override
-     * public Particulier subscribeParticulier(Particulier particulier) {
-     * 
-     * String generatedPassword = generateRandomPassword();
-     * System.out.println("generated passeword: " + generatedPassword);
-     * String hashedPassword = passwordEncoder.encode(generatedPassword);
-     * particulier.setPassword(hashedPassword );
-     * Particulier subscribedParticulier = particulierRepository.save(particulier);
-     * emailService.sendConfirmationEmail(subscribedParticulier.getEmail());
-     * 
-     * // Retrieve Commune based on postal code
-     * String postalCode = particulier.getCodePostal(); // Assuming you have a
-     * method to get postal code from Particulier
-     * Commune commune = communeRepository.findByCodePostal(postalCode);
-     * 
-     * if (commune != null) {
-     * subscribedParticulier.setCommune(commune); // Associate Particulier with
-     * Commune
-     * return particulierRepository.save(subscribedParticulier); // Save and return
-     * the updated Particulier
-     * } else {
-     * // Handle scenario when Commune is not found for the provided postal code
-     * return null;
-     * }
-     * 
-     * return subscribedParticulier;
-     * }
-     */
-
     @Override
-    public Particulier subscribeParticulier(Particulier particulier) {
+    public Map<String, Object> subscribeParticulier(Particulier particulier) {
         try {
             // Check if the email already exists
             if (clientRepository.existsByEmail(particulier.getEmail())) {
@@ -255,28 +183,31 @@ public class ClientServiceImpl implements ClientService {
             }
 
             String generatedPassword = generateRandomPassword();
-            System.out.println("Generated password: " + generatedPassword);
-
             String hashedPassword = passwordEncoder.encode(generatedPassword);
             particulier.setPassword(hashedPassword);
 
-            // Save the Particulier first
             Particulier subscribedParticulier = particulierRepository.save(particulier);
             emailService.sendConfirmationEmail(subscribedParticulier.getEmail(), generatedPassword);
-            System.out.println("Sending confirmation email to: " + subscribedParticulier.getEmail());
 
-            String postalCode = particulier.getCodePostal(); // Assuming you have a method to get postal code from
-                                                             // Particulier
+            String postalCode = subscribedParticulier.getCodePostal();
             Commune commune = communeRepository.findByCodePostal(postalCode);
-            System.out.println("postalCode postalCode: " + postalCode);
 
             if (commune != null) {
-                subscribedParticulier.setCommune(commune); // Associate Particulier with Commune
+                subscribedParticulier.setCommune(commune);
                 particulierRepository.save(subscribedParticulier);
-                return subscribedParticulier; // Save and return the updated Particulier
+
+                // Generate token and include it in the response
+                String token = jwtUtil.generateToken(subscribedParticulier.getId(), RoleType.client);
+
+                // Create a response map with the token and subscribedParticulier details
+                Map<String, Object> response = new HashMap<>();
+                response.put("token", token);
+                response.put("subscribedParticulier", subscribedParticulier);
+
+                return response;
             } else {
                 // Handle scenario when Commune is not found for the provided postal code
-                return null;
+                throw new RuntimeException("Commune not found for postal code: " + postalCode);
             }
         } catch (RuntimeException e) {
             throw e; // Re-throw the exception to be handled globally or customize the response here

@@ -4,6 +4,7 @@ public enum RoleType {
     directeur,
     courtier,
     admin,
-    banquierregionale
+    banquierregionale,
+    client
 }
 
