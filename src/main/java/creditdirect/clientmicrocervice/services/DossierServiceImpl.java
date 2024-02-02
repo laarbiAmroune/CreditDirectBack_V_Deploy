@@ -4,9 +4,7 @@ package creditdirect.clientmicrocervice.services;
 import creditdirect.clientmicrocervice.config.FileStorageProperties;
 import creditdirect.clientmicrocervice.entities.*;
 import creditdirect.clientmicrocervice.repositories.*;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import jakarta.persistence.EntityManager;
-
 
 
 @Service
@@ -70,57 +65,16 @@ public class DossierServiceImpl implements DossierService {
     public Dossier addDossier(Dossier dossier) {
         Long clientId = dossier.getClient().getId();
 
-        System.out.println("ajoute du dossier") ;
+        System.out.println("ajoute du dossier");
         System.out.println("Client ID: " + clientId);
 
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new RuntimeException("Client not found"));
         dossier.setClient(client);
-
-     /*   if (client instanceof Particulier) {
-            Particulier particulier = (Particulier) client;
-            System.out.println("particulier ID: " + particulier);
-            // Assuming particulierId is retrieved from somewhere, it's not defined in the given code
-            Particulier foundParticulier = particulierRepository.findById(particulier.getId()).orElse(null);
-
-            if (foundParticulier != null) {
-                Commune commune = foundParticulier.getCommune();
-
-                if (commune != null) {
-                    List<Agence> agences = findAgencesByCommuneId(commune.getId());
-                    System.out.println("commune ID: " + commune.getId());
-                    System.out.println("agences ID: " + agences);
-
-                    if (agences.size() == 1) {
-                        System.out.println("Cette commune appartient à une seule agence");
-                        Agence singleAgence = agences.get(0);
-                        Long agenceId = singleAgence.getId();
-                        System.out.println("agenceId"+agenceId);
-                        if (agenceId != null) {
-                            dossier.setAssignedagence(singleAgence);
-                        }
-
-                        return dossierRepository.save(dossier);
-                    } else if (agences.size() > 1) {
-                        System.out.println("Cette commune appartient à plusieurs agences");
-                        Agence firstAgence = agences.get(0);
-                        System.out.println("firstAgence"+firstAgence);
-                        DirectionRegionale directionRegionale = firstAgence.getDirectionRegionale();
-
-                        if (directionRegionale != null) {
-                            Long directionRegionaleId = directionRegionale.getId();
-                            System.out.println("directionRegionaleId"+directionRegionaleId);
-                            dossier.setAssigneddirectionregionnale(directionRegionale);
-                        }
-
-                        return dossierRepository.save(dossier);
-                    }
-                }
-            }
-        }*/
-
-        return dossierRepository.save(dossier);
+   return dossierRepository.save(dossier);
     }
+
+
     @Override
     public Dossier affectiondossieragence(Long dossierId) {
         Optional<Dossier> optionalDossier = dossierRepository.findById(dossierId);
@@ -179,39 +133,6 @@ public class DossierServiceImpl implements DossierService {
 
 
 
-    /* @Override
-     public Dossier updateFilesForDossier(Long dossierId, MultipartFile[] files) {
-         Dossier dossier = dossierRepository.findById(dossierId)
-                 .orElseThrow(() -> new RuntimeException("Dossier not found with id: " + dossierId));
-
-         List<AttachedFile> attachedFiles = fileStorageService.storeFilesForDossier(files, dossierId);
-         dossier.setAttachedFiles(attachedFiles);
-
-         return dossierRepository.save(dossier);
-     }
- */
-    // Service layer
-   /*@Override
-   public Dossier updateFilesForDossier(Long dossierId, MultipartFile[] files) {
-       Dossier dossier = dossierRepository.findById(dossierId)
-               .orElseThrow(() -> new RuntimeException("Dossier not found with id: " + dossierId));
-
-       List<AttachedFile> attachedFiles = dossier.getAttachedFiles(); // Get existing attached files
-
-       // Store the new files and retrieve AttachedFile objects
-       List<AttachedFile> newAttachedFiles = fileStorageService.storeFilesForDossier(files, dossierId);
-
-       // Add the new AttachedFile objects to the existing list
-       if (attachedFiles == null) {
-           attachedFiles = new ArrayList<>();
-       }
-       attachedFiles.addAll(newAttachedFiles);
-
-       // Update the attached files list in the Dossier entity
-       dossier.setAttachedFiles(attachedFiles);
-
-       return dossierRepository.save(dossier);
-   }*/
     public Dossier updateFilesForDossier(Long dossierId, MultipartFile[] files) {
         Dossier dossier = dossierRepository.findById(dossierId)
                 .orElseThrow(() -> new RuntimeException("Dossier not found with id: " + dossierId));
@@ -325,21 +246,63 @@ public class DossierServiceImpl implements DossierService {
     }
     @Override
     public Dossier assignDossierToCourtier(Long dossierId, Long courtierId) {
-        Dossier dossier = dossierRepository.findById(dossierId)
-                .orElseThrow(() -> new EntityNotFoundException("Dossier not found with id: " + dossierId));
+        try {
+            Dossier dossier = dossierRepository.findById(dossierId)
+                    .orElseThrow(() -> new EntityNotFoundException("Dossier not found with id: " + dossierId));
 
+            Compte courtier = compteRepository.findById(courtierId)
+                    .orElseThrow(() -> new EntityNotFoundException("Courtier not found with id: " + courtierId));
 
-        Compte courtier = compteRepository.findById(courtierId)
-                .orElseThrow(() -> new EntityNotFoundException("Courtier not found with id: " + courtierId));
+            dossier.setAssignedCourtier(courtier);
+            dossier.setStatus(DossierStatus.TRAITEMENT_ENCOURS); // Assuming a new assignment resets status
+            dossierRepository.save(dossier);
+            Long agenceId = dossier.getAssignedagence().getId();
+            if (agenceId == null) {
+                throw new EntityNotFoundException("agence not found for this dossiers");
+            }
 
+            Compte directeur = findDirecteurByAgenceId(agenceId);
+            if (directeur == null) {
+                throw new EntityNotFoundException("Directeur not found for agenceId: " + agenceId);
+            }
+            dossier.setDirecteurAgence(directeur);
 
-        dossier.setAssignedCourtier(courtier);
-        dossier.setStatus(DossierStatus.TRAITEMENT_ENCOURS); // Assuming a new assignment resets status
-
-        return dossierRepository.save(dossier);
+            return dossierRepository.save(dossier);
+        } catch (EntityNotFoundException e) {
+            // Rethrow EntityNotFoundException to be caught by the controller
+            throw e;
+        } catch (IllegalStateException e) {
+            // Rethrow IllegalStateException to be caught by the controller
+            throw e;
+        } catch (RuntimeException e) {
+            // Rethrow RuntimeException to be caught by the controller
+            throw e;
+        } catch (Exception e) {
+            // Handle other exceptions if necessary
+            throw new RuntimeException("An unexpected error occurred during dossier assignment.", e);
+        }
     }
 
 
+    public Compte findDirecteurByAgenceId(Long agenceId) {
+        String jpql = "SELECT c FROM Compte c WHERE c.agenceId = :agenceId AND c.role = :role";
+        TypedQuery<Compte> query = entityManager.createQuery(jpql, Compte.class);
+        query.setParameter("agenceId", agenceId);
+        query.setParameter("role", RoleType.directeur);
+
+        try {
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            // Handle the case where no result is found (return null or throw an EntityNotFoundException)
+            throw new EntityNotFoundException("Directeur not found for agenceId: " + agenceId);
+        } catch (NonUniqueResultException e) {
+            // Handle the case where more than one result is found (throw an exception or handle accordingly)
+            throw new IllegalStateException("More than one directeur found for agenceId: " + agenceId);
+        } catch (Exception e) {
+            // Handle other exceptions if necessary
+            throw new RuntimeException("An error occurred while finding directeur.", e);
+        }
+    }
     // courtier avoir les dossiers non traiter
     @Override
     public List<Dossier> getDossiersForCourtier(Long courtierId) {

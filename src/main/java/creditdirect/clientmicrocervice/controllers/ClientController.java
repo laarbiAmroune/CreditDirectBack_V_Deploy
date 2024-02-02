@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -29,6 +30,8 @@ public class ClientController {
     private final EncryptionService encryptionService;
 
     ///////////////// get all client////////////////////////////
+
+    @PreAuthorize("hasRole('admin')")
     @GetMapping
     public ResponseEntity<List<Client>> getAllClients() {
         List<Client> clients = clientService.getAllClients();
@@ -83,45 +86,31 @@ public class ClientController {
         }
     }
 
-    //////////// encien loginnn
-    @PostMapping("/login/encienne")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
-        String password = credentials.get("password");
 
-        if (email == null || password == null) {
-            return new ResponseEntity<>("Email or password missing", HttpStatus.BAD_REQUEST);
-        }
-
-        String token = clientService.login(email, password);
-
-        if ("Authentication failed".equals(token)) {
-            return new ResponseEntity<>("Authentication failed", HttpStatus.UNAUTHORIZED);
-        } else {
-            // Create a JSON object to send the token in the response
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            return ResponseEntity.ok(response);
-        }
-    }
 
     ////////////////// inscription particulier///////////////////////////
     @PostMapping("/subscribe/particulier")
     public ResponseEntity<Object> subscribeParticulier(@RequestBody Particulier particulier) {
         try {
-            Particulier subscribedParticulier = clientService.subscribeParticulier(particulier);
-            return new ResponseEntity<>(subscribedParticulier, HttpStatus.CREATED);
+            Map<String, Object> response = clientService.subscribeParticulier(particulier);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             // Handle the specific case where the email already exists
             if (e.getMessage().equals("Email already exists")) {
-                return new ResponseEntity<>("Email already exists", HttpStatus.BAD_REQUEST);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already exists");
             }
 
+            // Log the exception for debugging purposes
+            log.error("Error during particulier subscription", e);
+
             // Handle other runtime exceptions if necessary
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         } catch (Exception e) {
+            // Log the exception for debugging purposes
+            log.error("Unexpected error during particulier subscription", e);
+
             // Handle other exceptions if necessary
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
     }
 

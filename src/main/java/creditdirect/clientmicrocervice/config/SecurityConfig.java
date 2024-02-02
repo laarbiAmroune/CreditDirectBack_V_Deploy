@@ -36,8 +36,11 @@ public class SecurityConfig  {
         .authorizeHttpRequests(requests-> requests
                       /*  .requestMatchers("/clients/**","banque/comptes/signin").permitAll()*/
 
-                .requestMatchers("/dossiers/courtier/**").authenticated()
+                .requestMatchers("/clients").authenticated()
                 .requestMatchers("/dossiers/all").authenticated()
+
+
+
 
                         .anyRequest().permitAll());
 
