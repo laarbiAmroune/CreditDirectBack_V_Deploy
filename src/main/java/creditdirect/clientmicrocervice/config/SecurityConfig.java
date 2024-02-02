@@ -36,7 +36,7 @@ public class SecurityConfig  {
         .authorizeHttpRequests(requests-> requests
                       /*  .requestMatchers("/clients/**","banque/comptes/signin").permitAll()*/
 
-                .requestMatchers("/clients").authenticated()
+
                 .requestMatchers("/dossiers/all").authenticated()
 
 
