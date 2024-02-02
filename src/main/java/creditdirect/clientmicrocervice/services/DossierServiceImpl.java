@@ -71,7 +71,7 @@ public class DossierServiceImpl implements DossierService {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new RuntimeException("Client not found"));
         dossier.setClient(client);
-        return dossier;
+   return dossierRepository.save(dossier);
     }
 
 

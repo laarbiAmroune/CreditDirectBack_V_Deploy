@@ -38,7 +38,7 @@ public class SecurityConfig  {
 
                 .requestMatchers("/clients").authenticated()
                 .requestMatchers("/dossiers/all").authenticated()
-                .requestMatchers("/downloadFile/{dossierId}/{fileName}").authenticated()
+
 
 
 
