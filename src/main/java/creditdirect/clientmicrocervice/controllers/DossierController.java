@@ -4,14 +4,12 @@ import creditdirect.clientmicrocervice.entities.Dossier;
 import creditdirect.clientmicrocervice.kafka.KafkaProducer;
 import creditdirect.clientmicrocervice.services.DossierService;
 import creditdirect.clientmicrocervice.services.DossierServiceImpl;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,34 +22,32 @@ import java.nio.file.Paths;
 import java.util.List;
 
 
+
 @RestController
 @RequestMapping("/dossiers")
 public class DossierController {
+
 
     private final DossierService dossierService;
 
     @Autowired
     public DossierController(DossierService dossierService) {
         this.dossierService = dossierService;
+
     }
-
-    // Get all dossiers
-
-
-    @PreAuthorize("hasRole('admin')")
+    ///////////////get all dossiers////////////////////
     @GetMapping("/all")
+
     public ResponseEntity<List<Dossier>> getAllDossiers() {
         List<Dossier> dossiers = dossierService.getAllDossiers();
         return new ResponseEntity<>(dossiers, HttpStatus.OK);
     }
-
-    // Get dossier by id (restricted to users with 'courtier' authority)
-
+    ////////////////get dosssier by id dossiers /////////////////////////
     @GetMapping("/{id}")
-    public ResponseEntity<Dossier> getDossierById(@PathVariable Long id) {
-        Dossier dossier = dossierService.getDossierById(id);
-        return new ResponseEntity<>(dossier, HttpStatus.OK);
+    public Dossier getDossierById(@PathVariable Long id) {
+        return dossierService.getDossierById(id);
     }
+
 
     //////////////////get dossiiers by id client/////////////////
 
@@ -63,18 +59,9 @@ public class DossierController {
     ///////////////////add dossier /////////////////
     @PostMapping("/adddossier")
     public ResponseEntity<Dossier> addDossier(@RequestBody Dossier dossier) {
-        try {
-            System.out.println("ajoute du dossier controller");
-            Dossier addedDossier = dossierService.addDossier(dossier);
-            return ResponseEntity.ok(addedDossier);
-        } catch (Exception e) {
-            e.printStackTrace(); // Log the exception
-
-            // You may want to customize the error response based on your requirements
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        Dossier addedDossier = dossierService.addDossier(dossier);
+        return ResponseEntity.ok(addedDossier);
     }
-
     /////////////////////update dossier add files/////////////////////////
     @PostMapping("/{dossierId}/files")
     public ResponseEntity<Dossier> updateFilesForDossier(
@@ -89,18 +76,11 @@ public class DossierController {
 
     //////////////////////////////// asign dossiers to courtier///////////////////
     @PostMapping("/assign-dossier/{dossierId}/to-courtier/{courtierId}")
-    public ResponseEntity<?> assignDossierToCourtier(@PathVariable Long dossierId, @PathVariable Long courtierId) {
-        try {
-            Dossier assignedDossier = dossierService.assignDossierToCourtier(dossierId, courtierId);
-            return ResponseEntity.ok(assignedDossier);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during dossier assignment: " + e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred during dossier assignment: " + e.getMessage());
-        }
+    public ResponseEntity<Dossier> assignDossierToCourtier(@PathVariable Long dossierId, @PathVariable Long courtierId) {
+        Dossier assignedDossier = dossierService.assignDossierToCourtier(dossierId, courtierId);
+        return ResponseEntity.ok(assignedDossier);
     }
+
     /////////////dossier agence non asignd
     @GetMapping("/{courtierAgenceId}/dossiersnotassigned")
     public List<Dossier> getDossiersForCourtier(@PathVariable Long courtierAgenceId) {
@@ -217,12 +197,10 @@ public class DossierController {
 
 
     /////////////////////
-
     @GetMapping("/courtier/{courtierId}/alldossiers")
     public List<Dossier> getAcceptedAndRejectedDossiersByCourtier(
             @PathVariable Long courtierId
     ) {
-
         return dossierService.getAcceptedAndRejectedDossiersByCourtier(courtierId);
     }
 
