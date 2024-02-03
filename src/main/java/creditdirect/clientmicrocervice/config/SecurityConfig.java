@@ -32,7 +32,7 @@ public class SecurityConfig  {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+               /* .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)*/
         .authorizeHttpRequests(requests-> requests
                         .requestMatchers("/clients/**","banque/comptes/signin").permitAll()
 
