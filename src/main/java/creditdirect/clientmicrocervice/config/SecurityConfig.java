@@ -34,7 +34,7 @@ public class SecurityConfig  {
         http
                /* .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)*/
         .authorizeHttpRequests(requests-> requests
-                        .requestMatchers("/clients/**","banque/comptes/signin").permitAll()
+                        .requestMatchers("/clients/**","/banque/comptes/signin").permitAll()
 
 
                 .requestMatchers("/dossiers/all").authenticated()
