@@ -16,7 +16,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*");
+        config.addAllowedOriginPattern("*"); // Use allowedOriginPatterns instead of allowedOrigins
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
