@@ -1,8 +1,8 @@
-FROM maven:3.8.4-openjdk-11 AS build
+FROM maven:3.8.4-openjdk-17 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-FROM adoptopenjdk:11-jre-hotspot
+FROM openjdk:17.0.1-jdk-slim
 
 COPY --from=build target/ClientMicrocervice-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
