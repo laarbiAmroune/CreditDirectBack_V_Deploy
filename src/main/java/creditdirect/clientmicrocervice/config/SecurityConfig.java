@@ -29,19 +29,10 @@ public class SecurityConfig {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                .cors().and().csrf().disable()
-                .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/clients/**", "/banque/comptes/signin").permitAll()
-
-                        .requestMatchers("/dossiers/all").authenticated()
-
-                        .anyRequest().permitAll());
-
-        http.csrf(AbstractHttpConfigurer::disable);
-
+        http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
+        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());// .disable();
         return http.build();
     }
 
