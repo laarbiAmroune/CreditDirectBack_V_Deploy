@@ -22,25 +22,21 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfig  {
+public class SecurityConfig {
     private final JwtUtil jwtUtil;
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .authorizeHttpRequests(requests-> requests
-                        .requestMatchers("/clients/**","/banque/comptes/signin").permitAll()
+                .cors().and().csrf().disable()
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/clients/**", "/banque/comptes/signin").permitAll()
 
-
-                .requestMatchers("/dossiers/all").authenticated()
-
-
-
+                        .requestMatchers("/dossiers/all").authenticated()
 
                         .anyRequest().permitAll());
 
@@ -48,6 +44,7 @@ public class SecurityConfig  {
 
         return http.build();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
