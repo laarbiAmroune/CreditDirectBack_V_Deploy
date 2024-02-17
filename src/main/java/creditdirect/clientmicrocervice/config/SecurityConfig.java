@@ -29,10 +29,18 @@ public class SecurityConfig {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/clients/**", "/banque/comptes/signin").permitAll()
 
-        http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
-        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());// .disable();
+                        .requestMatchers("/dossiers/all").authenticated()
+
+                        .anyRequest().permitAll());
+
+        http.csrf(AbstractHttpConfigurer::disable);
+
         return http.build();
     }
 
