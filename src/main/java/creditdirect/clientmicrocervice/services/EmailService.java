@@ -28,7 +28,7 @@ public class EmailService {
         System.out.println("encrypted email " + encryptedEmail);
         // String activationUrl =
         // "http://localhost:8000/clients/activate/"+encryptedEmail;
-        String activationUrl = "https://observant-shock-production.up.railway.app/clients/activate?email="
+        String activationUrl = "https://billowing-throne-production.up.railway.app/clients/activate?email="
                 + encryptedEmail;
         try {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -113,7 +113,7 @@ public class EmailService {
     public void sendanotherConfirmation(String recipientEmail) {
 
         MimeMessage mimeMessage = emailSender.createMimeMessage();
-        String activationUrl = "https://observant-shock-production.up.railway.app/clients/activate?email="
+        String activationUrl = "https://billowing-throne-production.up.railway.app/clients/activate?email="
                 + recipientEmail;
 
         try {
@@ -146,7 +146,6 @@ public class EmailService {
         emailSender.send(mimeMessage);
     }
 
-
     public void sendPasswordResetEmail(String email, String newPassword, String recipientEmail) {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
 
@@ -156,9 +155,7 @@ public class EmailService {
             helper.setTo(recipientEmail);
             helper.setSubject("Password Reset");
 
-
-
-            String htmlBody  = "<html>"
+            String htmlBody = "<html>"
                     + "<head>"
                     + "<title>Réinitialisation du mot de passe</title>"
                     + "<style>"
@@ -181,7 +178,6 @@ public class EmailService {
         // Send the email
         emailSender.send(mimeMessage);
     }
-
 
 }
 
